@@ -314,6 +314,7 @@ export class Api {
   createTask(tenantId: ID, p: { title: string; description: string; opType: string; assigneeId: ID; reviewerId: ID | null; plannedDue: string; complexity: Complexity; findingId?: ID | null; docIds?: ID[]; source: Task['source'] }) {
     this.tenant(tenantId);
     this.require('tasks.create_from_issue', tenantId, 'Task');
+    if (!p.title || p.title.trim().length < 3) throw new WorkflowError('Тапсырма атауын жазыңыз');
     if (!p.assigneeId) throw new WorkflowError('Орындаушыны таңдаңыз');
     if (!p.plannedDue) throw new WorkflowError('Мерзімді көрсетіңіз');
     if (p.plannedDue < this.today()) throw new WorkflowError('Мерзім өткен күн бола алмайды');
@@ -485,6 +486,14 @@ export class Api {
     for (const k of ['simple', 'standard', 'complex'] as Complexity[]) if (!(w[k] > 0 && w[k] <= 20)) throw new WorkflowError('Коэффициент 0-ден 20-ға дейін');
     this.db.settings.complexityWeights = { ...w };
     this.audit('kpi_weights', 'Settings', null, null, JSON.stringify(w));
+    this.commit();
+  }
+  addLeadAssessment(userId: ID, period: string, note: string) {
+    if (!this.canAnywhere('kpi.config')) throw new ForbiddenError('Бағалауды тек қызмет жетекшісі жазады');
+    if (note.trim().length < 10) throw new WorkflowError('Бағалауды толығырақ жазыңыз (кемінде 10 таңба)');
+    this.db.leadAssessments = this.db.leadAssessments ?? [];
+    this.db.leadAssessments.push({ id: this.nextId('la'), userId, period, note: note.trim(), by: this.userId, at: this.now() });
+    this.audit('lead_assessment', 'User', userId, null, period);
     this.commit();
   }
   weight(c: Complexity) {

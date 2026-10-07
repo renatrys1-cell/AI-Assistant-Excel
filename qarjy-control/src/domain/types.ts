@@ -522,6 +522,8 @@ export interface Db {
   /** MockConnector: 1С-те бар, бірақ платформаға әлі оқылмаған деректер (кешіккен синхрондауды көрсету үшін) */
   mockSourceQueue: { tenantId: ID; transactions: Transaction[]; documents: SourceDocument[] }[];
   seq: number;
+  /** Қызмет жетекшісінің сапалық бағалауы (KPI-ді толықтырады, жалақыға автоматты әсер етпейді) */
+  leadAssessments?: { id: ID; userId: ID; period: string; note: string; by: ID; at: ISODateTime }[];
   /** Demo сағатының базасы: DEMO_NOW + (Date.now() − clockBaseMs) */
   clockBaseMs: number;
 }

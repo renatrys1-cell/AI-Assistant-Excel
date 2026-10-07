@@ -321,7 +321,7 @@ export function pnl(db: Db, s: Scope): Pnl {
   } else if (!full) {
     tax = { value: null, status: 'incomplete', reasons: ['Салық тек толық ай жабылғанда есептеледі'] };
   } else if (!allClosed) {
-    tax = { value: null, status: 'incomplete', reasons: [`Ай жабылмаған: ${openMonths.join(', ')} — салық әлі есептелмеген`] };
+    tax = { value: null, status: 'incomplete', reasons: [`Ай жабылмаған (${openMonths.join(', ')}) — табыс салығы әлі есептелмеген`] };
   } else {
     const vals = full.map((m) => db.periodCloses.find((p) => p.tenantId === s.tenantId && p.period === m)?.incomeTaxAccrual ?? null);
     if (vals.some((v) => v === null)) tax = { value: null, status: 'incomplete', reasons: ['Жабылған айда салық сомасы енгізілмеген'] };
