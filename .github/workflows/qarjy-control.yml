@@ -1,0 +1,42 @@
+name: Qarjy Control CI
+
+on:
+  pull_request:
+    paths:
+      - 'qarjy-control/**'
+      - '.github/workflows/qarjy-control.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'qarjy-control/**'
+      - '.github/workflows/qarjy-control.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qarjy-control-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: qarjy-control
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: qarjy-control/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        run: npx vite build
