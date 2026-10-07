@@ -153,3 +153,24 @@ export function Forbidden({ message }: { message: string }) {
     </div>
   );
 }
+
+/** Екі қадамды растау: браузердің confirm() диалогынсыз (кейбір ортада ол бұғатталады) */
+export function ConfirmButton({ children, confirmText, onConfirm, className = 'btn danger sm' }: { children: ReactNode; confirmText: string; onConfirm: () => void; className?: string }) {
+  const [armed, setArmed] = useState(false);
+  return (
+    <button
+      className={className}
+      onClick={() => {
+        if (armed) {
+          setArmed(false);
+          onConfirm();
+        } else {
+          setArmed(true);
+          window.setTimeout(() => setArmed(false), 5000);
+        }
+      }}
+    >
+      {armed ? confirmText : children}
+    </button>
+  );
+}

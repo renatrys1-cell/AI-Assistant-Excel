@@ -1,6 +1,6 @@
 import { useApp, primaryRole } from '../ctx';
 import { ROLE_LABEL } from '../../server/authz';
-import { Badge } from '../components/ui';
+import { Badge, ConfirmButton } from '../components/ui';
 import { Api } from '../../server/api';
 
 const SCENARIOS: [string, string][] = [
@@ -55,9 +55,9 @@ export function LoginPage({ onLogin, onReset }: { onLogin: (userId: string) => v
           </ul>
         </div>
         <div className="row">
-          <button className="btn danger sm" onClick={() => confirm('Барлық demo өзгерістер өшіріледі. Жалғастырасыз ба?') && onReset()}>
+          <ConfirmButton confirmText="Барлық demo өзгерістер өшіріледі — растау үшін қайта басыңыз" onConfirm={onReset}>
             Demo деректерін бастапқы күйге қайтару
-          </button>
+          </ConfirmButton>
           <span className="small muted">Өзгерістер браузерде (localStorage) сақталады және бет жаңартылғанда қалады.</span>
         </div>
       </div>
