@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../ctx';
-import { Badge, Card, NotImplemented, Tabs } from '../components/ui';
+import { Badge, Card, ConfirmButton, NotImplemented, Tabs } from '../components/ui';
 import { ROLE_LABEL } from '../../server/authz';
 import { fmtDateTime } from '../../domain/periods';
 import { resetDb, isPersistent } from '../../server/store';
@@ -56,7 +56,7 @@ export function SettingsPage() {
           </Card>
           <Card title="Demo деректер">
             <div className="small">Сақтау: {isPersistent() ? 'браузердің localStorage (бет жаңартылғанда сақталады)' : 'жадта ғана (localStorage қолжетімсіз)'}. Бұл production қауіпсіздігі емес.</div>
-            <button className="btn danger mt8" onClick={() => { if (confirm('Барлық demo өзгерістер өшіріледі.')) { resetDb(); window.location.reload(); } }}>Бастапқы күйге қайтару</button>
+            <div className="mt8"><ConfirmButton className="btn danger" confirmText="Барлық demo өзгерістер өшіріледі — растау үшін қайта басыңыз" onConfirm={() => { resetDb(); window.location.reload(); }}>Бастапқы күйге қайтару</ConfirmButton></div>
           </Card>
         </div>
       )}
