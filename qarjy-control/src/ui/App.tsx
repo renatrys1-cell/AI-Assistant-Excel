@@ -39,17 +39,37 @@ const NAV: Record<Role, [NavKey, string, string][]> = {
 };
 const DEFAULT_PATH: Record<Role, string> = { owner: '/home', client_manager: '/tasks', accountant: '/work', chief_accountant: '/control', service_lead: '/team', integrator: '/integrations', platform_admin: '/settings' };
 
-function parseHash(): Route {
-  const h = window.location.hash.replace(/^#/, '') || '/';
+function parseRoute(raw: string): Route {
+  const h = raw.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?');
   return { path, parts: path.split('/').filter(Boolean), query: new URLSearchParams(qs ?? '') };
+}
+
+function readHash(): string {
+  try {
+    return window.location.hash;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Маршрут қолданбаның ішкі күйінде сақталады. URL-дегі #-ты жаңарту — тек мүмкін болса
+ * (шектеулі iframe-де, мысалы ендірілген бетте, мекенжайды өзгертуге рұқсат жоқ).
+ */
+function syncHash(path: string) {
+  try {
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') window.history.replaceState(null, '', `#${path}`);
+  } catch {
+    /* шектеулі орта — тек ішкі маршрут қолданылады */
+  }
 }
 
 export function App() {
   const [db, setDb] = useState<Db>(() => loadDb());
   const [session, setSess] = useState<Session>(() => loadSession());
   const [version, setVersion] = useState(0);
-  const [route, setRoute] = useState<Route>(parseHash);
+  const [route, setRoute] = useState<Route>(() => parseRoute(readHash()));
   const [toastMsg, setToast] = useState<{ msg: string; err: boolean } | null>(null);
   const [drill, setDrill] = useState<DrillSpec | null>(null);
   const [doc, setDoc] = useState<{ tenantId: ID; docId: ID } | null>(null);
@@ -57,9 +77,24 @@ export function App() {
   const [taskId, setTaskId] = useState<ID | null>(null);
 
   useEffect(() => {
-    const on = () => setRoute(parseHash());
+    const on = () => setRoute(parseRoute(readHash()));
     window.addEventListener('hashchange', on);
-    return () => window.removeEventListener('hashchange', on);
+    // <a href="#/..."> сілтемелерін ішкі маршрутқа бағыттау (браузер навигациясынсыз)
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as HTMLElement | null)?.closest?.('a');
+      const href = a?.getAttribute('href');
+      if (!href || !href.startsWith('#/')) return;
+      e.preventDefault();
+      const path = href.slice(1);
+      setRoute(parseRoute(path));
+      syncHash(path);
+    };
+    document.addEventListener('click', onClick);
+    return () => {
+      window.removeEventListener('hashchange', on);
+      document.removeEventListener('click', onClick);
+    };
   }, []);
 
   const setSession = useCallback((p: Partial<Session>) => {
@@ -83,7 +118,8 @@ export function App() {
   }, []);
 
   const go = useCallback((path: string) => {
-    window.location.hash = path;
+    setRoute(parseRoute(path));
+    syncHash(path);
   }, []);
 
   const run: AppCtx['run'] = useCallback(
